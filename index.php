@@ -1,4 +1,31 @@
-<!DOCTYPE html>
+<?php
+require("auth.php");
+$db = "/data/NTH/db.json";
+if($_SERVER['REQUEST_METHOD'] == "POST")
+{
+  $i = fopen("php://input","r");
+  $h = fopen($db,"w");
+  while(!feof($i))
+  {
+    fwrite($h,fread($i,2048));
+  }
+  fclose($h);
+  fclose($i);
+  header("Connection: close");
+  exit;
+}
+elseif(array_key_exists("db",$_GET))
+{
+  header("Content-type: text/plain");
+  $h = fopen($db,"r");
+  while(!feof($h))
+  {
+    echo fread($h,2048);
+  }
+  fclose($h);
+  exit;
+}
+?><!DOCTYPE html>
 <html>
 <head>
   <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu:regular,bold&subset=Latin" />
