@@ -36,8 +36,8 @@ elseif(array_key_exists("db",$_GET))
 <html>
 <head>
   <link rel="stylesheet" type="text/css" href="http://fonts.googleapis.com/css?family=Ubuntu:regular,bold&subset=Latin" />
-  <script src="/rsc/res.js"></script>
-  <script src="/phpjs?f=json_decode,json_encode,file_get_contents"></script>
+  <script src="/phpjs?f=json_decode,json_encode,file_get_contents,shadow,compat,round"></script>
+  <!-- you may want to change above to an absolute URI, like http://s.natur-kultur.eu/phpjs?f=json_decode,etc -->
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width" />
   <title>NTH list</title>
@@ -58,7 +58,7 @@ elseif(array_key_exists("db",$_GET))
   {
     padding: 1.5%;
     background: white;
-    z-index: 3;
+    z-index: 101;
     border-radius: 5px;
     position: fixed;
   }
@@ -172,10 +172,12 @@ elseif(array_key_exists("db",$_GET))
 <script>
   var json = json_decode(file_get_contents(location.href+"?db")),
   nform,nfield,afield,pfield,sfield,sndbut,
-  table = document.createElement("table");
+  table = document.createElement("table"),
+  sumdiv, total,
+  sh;
   function mk()
   {
-    shadow.show();
+    sh.toggle(true);
     nform.style.display = "";
   }
   function snd()
@@ -193,7 +195,7 @@ elseif(array_key_exists("db",$_GET))
       if (xmlhttp.readyState==4 && xmlhttp.status==200)
       {
         init();
-        shadow.hide();
+        sh.toggle(false);
         nform.style.display = "none";
       }
     }
@@ -206,18 +208,19 @@ elseif(array_key_exists("db",$_GET))
     hnam = CE("td"),
     hamo = CE("td"),
     hper = CE("td"),
-    hsub = CE("td");
+    hsub = CE("td"),
+    hsum = CE("td"),
+    tc = "rgb(250,170,250)",
+    total = 0;
     if(pt != undefined){while(pt.firstChild) {pt.firstChild.remove();}}
+    if(pt == undefined) sumdiv = CE("div"); sumdiv.style.margin = "20px";
     hnam.innerHTML = "Name";
     hamo.innerHTML = "Betrag";
     hper.innerHTML = "Periode";
     hsub.innerHTML = "Zweck";
-    hnam.style.background = "rgb(250,170,250)";
-    hamo.style.background = "rgb(250,170,250)";
-    hper.style.background = "rgb(250,170,250)";
-    hsub.style.background = "rgb(250,170,250)";
-    hsub.style.background = "rgb(250,170,250)";
-    head.appendChilds(hnam,hamo,hper,hsub);
+    hsum.innerHTML = "Total / Jahr"
+    bs(hnam,hamo,hper,hsub,hsum,"background",tc);
+    head.appendChilds(hnam,hamo,hper,hsub,hsum);
     table.appendChild(head);
     for(var i = 0; i < json.length; i++)
     {
@@ -226,33 +229,54 @@ elseif(array_key_exists("db",$_GET))
       nam = CE("td"),
       amo = CE("td"),
       per = CE("td"),
-      sub = CE("td");
+      sub = CE("td"),
+      sum = CE("td"),
+      tot = o.period.toLowerCase() == "monatlich" ? o.amount*12 : o.amount;
+      total += parseInt(tot);
       nam.innerHTML = o.name;
       amo.innerHTML = o.amount+" &#8364;";
       per.innerHTML = o.period;
       sub.innerHTML = o.subj;
-      row.appendChilds(nam,amo,per,sub);
+      sum.innerHTML = round(tot,2)+" &#8364;";
+      row.appendChilds(nam,amo,per,sub,sum);
       table.appendChild(row);
     }
+    var s = CE("span");
+    s.innerHTML = "Total: "+round(total,2)+" &#8364;";
+    sumdiv.appendChilds(s,CE("br"),CE("hr"));
     if(pt == undefined)
     {
       table.border = true;
       var btn = document.createElement("button");
       btn.innerHTML = "Neuer Eintrag";
       btn.addEventListener("click",mk);
-      nform = document.getElementById("new");
-      nfield = document.getElementById("name");
-      afield = document.getElementById("amount");
-      pfield = document.getElementById("period");
-      sfield = document.getElementById("subject");
-      sndbut = document.getElementById("snd");
-      shadow.__construct();
-      shadow.div.style.cursor = "pointer";
-      shadow.div.addEventListener("click",function (e){shadow.hide();nform.style.display = "none"});
+      nform = document.id("new");
+      nfield = document.id("name");
+      afield = document.id("amount");
+      pfield = document.id("period");
+      sfield = document.id("subject");
+      sndbut = document.id("snd");
+      sh = new shadow();
+      sh.elem.style.cursor = "pointer";
+      sh.elem.addEventListener("click",function (e){sh.toggle(0);nform.style.display = "none"});
       sndbut.addEventListener("click",snd);
-      document.body.appendChilds(table,CE("br"),CE("br"),btn);
+      document.body.appendChilds(table,CE("br"),sumdiv,btn);
     }
   }
+  function bs(/*element[, element[, element, ...]], property, value*/){
+    var a = arguments,
+    l = a.length
+    c = a[l-1],
+    p = a[l-2],
+    i = 0,
+    t = l-2;
+    for(; i < t; i++)
+    {
+      var v = typeof c == "string" ? '"'+c+'"' : c;
+      eval("a[i].style."+p+" = "+v+";");
+    }
+  }
+  Document.prototype.id = function (s){return this.getElementById(s)}
   window.addEventListener("load",init);
 </script>
 </head>
