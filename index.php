@@ -1,13 +1,20 @@
 <?php
 require("auth.php");
-$db = "/data/NTH/db.json";
+header("Content-type: text/html; charset=utf-8");
+header("Expires: on, 01 Jan 1970 00:00:00 GMT");
+header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+header("Cache-Control: no-store, no-cache, must-revalidate");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
+$db = "/home/pi/NTH/db.json";
+define("chunk",524288);
 if($_SERVER['REQUEST_METHOD'] == "POST")
 {
   $i = fopen("php://input","r");
   $h = fopen($db,"w");
   while(!feof($i))
   {
-    fwrite($h,fread($i,2048));
+    fwrite($h,fread($i,chunk));
   }
   fclose($h);
   fclose($i);
@@ -20,7 +27,7 @@ elseif(array_key_exists("db",$_GET))
   $h = fopen($db,"r");
   while(!feof($h))
   {
-    echo fread($h,2048);
+    echo fread($h,chunk);
   }
   fclose($h);
   exit;

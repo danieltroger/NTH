@@ -1,5 +1,5 @@
 <?php
-$authfile = "/data/NTH/secret";
+$authfile = "/home/pi/NTH/secret";
 if(!file_exists($authfile))
 {
   file_put_contents($authfile,json_encode(Array()));
